@@ -1,0 +1,83 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+ name: datastore
+provisioner: kubernetes.io/aws-ebs
+parameters:
+ type: gp2
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+mountOptions:
+ - debug
+volumeBindingMode: Immediate
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+ name: devpvc
+ namespace: devproject
+spec:
+ accessModes:
+   - ReadWriteOnce
+ storageClassName: datastore
+ resources:
+   requests:
+     storage: 5Gi
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+ name: mysqlinst
+ namespace: devproject
+spec:
+ volumeClaimTemplates: #Reclaim policy: data will be re added whenever pod deleted
+   - metadata:
+      name: data
+     spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi
+ replicas: 1
+ serviceName: mysqlsvc
+ selector:
+   matchLabels:
+    apptype: db
+    env: dev
+ template:
+   metadata:
+     name: dbtemp
+     labels:
+       apptype: db
+       env: dev
+   spec:   
+    containers:
+    - image: mysql:5.7
+      name: dbcon
+      env:
+      - name: MYSQL_ROOT_PASSWORD
+        value: password
+      ports:
+      - containerPort: 3306
+        name: mysql
+      volumeMounts:
+      - name: dbvolume
+        mountPath: /var/lib/mysql
+    volumes:
+    - name: dbvolume
+      persistentVolumeClaim:
+        claimName: devpvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: mysqlsvc
+ namespace: devproject
+spec:
+ ports:
+ - name: mysql
+   port: 3306
+   targetPort: 3306
+   protocol: TCP
+ selector:
+   apptype: db
+   env: dev

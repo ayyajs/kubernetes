@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: php-pod
+  namespace: devproject
+spec: 
+  containers:
+  - name: php-container
+    image: ayyadoc/event-management:v1
+    ports: 
+      - containerPort: 80

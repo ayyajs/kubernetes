@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: phppod-deployment
+  namespace: devproject
+  labels:
+    tier: web-tier-muthu
+spec:
+  replicas: 2
+  template:
+    metadata:
+      name: php-pod
+      namespace: devproject
+      labels:
+        tier: web-tier
+    spec:
+      containers:
+      - name: php-container
+        image: ayyadoc/event-management:v1
+        ports: 
+          - containerPort: 80
+  selector:
+    matchLabels:
+      tier: web-tier
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: webapplication-svc   #service name (it can be any name)
+ namespace: devproject
+spec:
+ type: LoadBalancer
+ ports:
+ - name: apache
+   port: 80 #service port
+   targetPort: 80 #container port
+   protocol: TCP
+ selector:     #mapping to pod
+   tier: web-tier
