@@ -6,7 +6,7 @@ metadata:
   labels:
     tier: web-tier-muthu
 spec:
-  replicas: 2
+  replicas: 3
   template:
     metadata:
       name: php-pod
@@ -26,7 +26,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
- name: webapplication-svc   #service name (it can be any name)
+ name: webapplication-service   #service name (it can be any name)
  namespace: devproject
 spec:
  type: LoadBalancer
